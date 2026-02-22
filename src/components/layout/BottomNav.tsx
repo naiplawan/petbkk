@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
+  Home,
   PawPrint,
   Store,
   CalendarDays,
@@ -11,10 +12,10 @@ import {
 } from 'lucide-react';
 
 const navItems = [
+  { href: '/home', label: 'Home', icon: Home },
   { href: '/pets', label: 'Pets', icon: PawPrint },
   { href: '/providers', label: 'Services', icon: Store },
   { href: '/bookings', label: 'Bookings', icon: CalendarDays },
-  { href: '/profile', label: 'Profile', icon: User },
 ];
 
 export function BottomNav() {

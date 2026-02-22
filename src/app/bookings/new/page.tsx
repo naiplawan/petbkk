@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, PawPrint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePets } from '@/hooks/usePets';
@@ -34,6 +34,14 @@ const bookingSchema = z.object({
 });
 
 type BookingFormData = z.infer<typeof bookingSchema>;
+
+const petEmojis: Record<string, string> = {
+  dog: '🐕',
+  cat: '🐈',
+  bird: '🐦',
+  rabbit: '🐰',
+  other: '🐾',
+};
 
 function NewBookingContent() {
   const { user } = useAuth();
@@ -111,67 +119,85 @@ function NewBookingContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-background border-b border-border">
-        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
-          <Link href="/bookings" className="flex items-center text-muted-foreground">
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Back
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-white pb-8">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-amber-100 sticky top-0 z-50">
+        <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
+          <Link href="/bookings" className="flex items-center text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="font-semibold">Book Service</h1>
-          <div className="w-16" />
+          <div className="flex-1">
+            <h1 className="font-semibold text-gray-900">Book a Service 📅</h1>
+          </div>
+          <div className="w-5" />
         </div>
       </header>
 
-      <main className="p-4 max-w-lg mx-auto pb-8">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <main className="max-w-lg mx-auto px-4 py-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Progress Indicator */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🐾</span>
+              <span className="text-sm text-gray-600">Let&apos;s book your appointment</span>
+            </div>
+          </div>
+
           {/* Select Pet */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Select Pet</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <Card className="border-2 border-amber-200">
+            <CardContent className="p-4">
+              <Label className="text-gray-900 font-medium flex items-center gap-2 mb-3">
+                <PawPrint className="h-4 w-4 text-amber-500" />
+                Which pet?
+              </Label>
               <Select
                 onValueChange={(value) => setValue('pet_id', value)}
                 defaultValue={watch('pet_id')}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a pet" />
+                <SelectTrigger className="bg-amber-50 border-amber-200">
+                  <SelectValue placeholder="Choose your pet" />
                 </SelectTrigger>
                 <SelectContent>
                   {pets?.map((pet) => (
                     <SelectItem key={pet.id} value={pet.id}>
-                      {pet.name} ({pet.species})
+                      <span className="flex items-center gap-2">
+                        <span>{petEmojis[pet.species] || '🐾'}</span>
+                        <span>{pet.name}</span>
+                        <span className="text-muted-foreground">({pet.species})</span>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {errors.pet_id && (
-                <p className="text-sm text-destructive mt-1">{errors.pet_id.message}</p>
+                <p className="text-sm text-red-500 mt-2">{errors.pet_id.message}</p>
               )}
               {(!pets || pets.length === 0) && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  No pets added yet.{' '}
-                  <Link href="/pets/new" className="text-primary underline">
-                    Add a pet
-                  </Link>
-                </p>
+                <div className="mt-3 p-3 bg-amber-50 rounded-lg">
+                  <p className="text-sm text-amber-700">
+                    No pets added yet.{' '}
+                    <Link href="/pets/new" className="underline font-medium">
+                      Add a pet first
+                    </Link>
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
 
           {/* Select Provider */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Select Provider</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <Card className="border-2 border-amber-200">
+            <CardContent className="p-4">
+              <Label className="text-gray-900 font-medium flex items-center gap-2 mb-3">
+                <MapPin className="h-4 w-4 text-amber-500" />
+                Choose provider
+              </Label>
               <Select
                 onValueChange={(value) => setValue('provider_id', value)}
                 defaultValue={watch('provider_id')}
                 disabled={!!preselectedProviderId}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-amber-50 border-amber-200">
                   <SelectValue placeholder="Choose a provider" />
                 </SelectTrigger>
                 <SelectContent>
@@ -183,118 +209,147 @@ function NewBookingContent() {
                 </SelectContent>
               </Select>
               {errors.provider_id && (
-                <p className="text-sm text-destructive mt-1">
-                  {errors.provider_id.message}
-                </p>
+                <p className="text-sm text-red-500 mt-2">{errors.provider_id.message}</p>
               )}
             </CardContent>
           </Card>
 
           {/* Select Service */}
           {selectedProviderId && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Select Service</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {services?.map((service) => (
-                  <label
-                    key={service.id}
-                    className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-accent"
-                  >
-                    <input
-                      type="radio"
-                      value={service.id}
-                      {...register('service_id')}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <p className="font-medium">{service.name}</p>
-                      {service.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {service.description}
-                        </p>
-                      )}
-                      <p className="text-sm font-semibold text-emerald-600 mt-1">
-                        ฿{service.price_min?.toLocaleString()}
-                        {service.price_max &&
-                          service.price_max !== service.price_min && (
-                            <> - ฿{service.price_max.toLocaleString()}</>
+            <Card className="border-2 border-amber-200">
+              <CardContent className="p-4">
+                <Label className="text-gray-900 font-medium flex items-center gap-2 mb-3">
+                  <span className="text-lg">🛎️</span>
+                  Select service
+                </Label>
+                <div className="space-y-2">
+                  {services?.map((service) => (
+                    <label
+                      key={service.id}
+                      className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all ${
+                        watch('service_id') === service.id
+                          ? 'border-amber-400 bg-amber-50'
+                          : 'border-amber-100 hover:border-amber-200'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        value={service.id}
+                        {...register('service_id')}
+                        className="mt-1 accent-amber-500"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{service.name}</p>
+                        {service.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {service.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-3 mt-2 text-sm">
+                          <span className="font-semibold text-emerald-600">
+                            ฿{service.price_min?.toLocaleString()}
+                            {service.price_max &&
+                              service.price_max !== service.price_min && (
+                                <> - ฿{service.price_max.toLocaleString()}</>
+                              )}
+                          </span>
+                          {service.duration_minutes && (
+                            <span className="text-muted-foreground">
+                              · {service.duration_minutes} min
+                            </span>
                           )}
-                      </p>
-                    </div>
-                  </label>
-                ))}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
                 {errors.service_id && (
-                  <p className="text-sm text-destructive">{errors.service_id.message}</p>
+                  <p className="text-sm text-red-500 mt-2">{errors.service_id.message}</p>
                 )}
               </CardContent>
             </Card>
           )}
 
           {/* Date & Time */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Date & Time</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Date</Label>
-                <Input
-                  type="date"
-                  min={today}
-                  {...register('booking_date')}
-                />
-                {errors.booking_date && (
-                  <p className="text-sm text-destructive">
-                    {errors.booking_date.message}
-                  </p>
-                )}
-              </div>
+          <Card className="border-2 border-amber-200">
+            <CardContent className="p-4">
+              <Label className="text-gray-900 font-medium flex items-center gap-2 mb-3">
+                <Calendar className="h-4 w-4 text-amber-500" />
+                When?
+              </Label>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Date</Label>
+                  <Input
+                    type="date"
+                    min={today}
+                    {...register('booking_date')}
+                    className="bg-amber-50 border-amber-200"
+                  />
+                  {errors.booking_date && (
+                    <p className="text-sm text-red-500">{errors.booking_date.message}</p>
+                  )}
+                </div>
 
-              <div className="space-y-2">
-                <Label>Time</Label>
-                <Select onValueChange={(value) => setValue('booking_time', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeSlots.map((time) => (
-                      <SelectItem key={time} value={time}>
-                        {time}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.booking_time && (
-                  <p className="text-sm text-destructive">
-                    {errors.booking_time.message}
-                  </p>
-                )}
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Time</Label>
+                  <Select onValueChange={(value) => setValue('booking_time', value)}>
+                    <SelectTrigger className="bg-amber-50 border-amber-200">
+                      <SelectValue placeholder="Select time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeSlots.map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.booking_time && (
+                    <p className="text-sm text-red-500">{errors.booking_time.message}</p>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Notes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Additional Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <Card className="border-2 border-amber-200">
+            <CardContent className="p-4">
+              <Label className="text-gray-900 font-medium flex items-center gap-2 mb-3">
+                <span>📝</span>
+                Additional Notes
+              </Label>
               <Textarea
                 {...register('notes')}
                 placeholder="Any special requests or notes..."
                 rows={3}
+                className="bg-amber-50 border-amber-200"
               />
             </CardContent>
           </Card>
 
           {error && (
-            <p className="text-sm text-destructive text-center">{error}</p>
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm text-center">
+              {error}
+            </div>
           )}
 
-          <Button type="submit" className="w-full" disabled={createBooking.isPending}>
-            {createBooking.isPending ? 'Booking...' : 'Confirm Booking'}
+          <Button
+            type="submit"
+            className="w-full h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-base"
+            disabled={createBooking.isPending}
+          >
+            {createBooking.isPending ? (
+              <span className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span>
+                Booking...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                Confirm Booking <span>✓</span>
+              </span>
+            )}
           </Button>
         </form>
       </main>
@@ -307,7 +362,10 @@ export default function NewBookingPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="flex flex-col items-center gap-4">
+            <div className="text-6xl animate-bounce">🐾</div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
         </div>
       }
     >
